@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <NoWarn>9</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Graphics\DrawingContext.fs" />
+    <Compile Include="Threading\Dispatcher.fs" />
+    <Compile Include="Threading\DispatchManager.fs" />
+    <Compile Include="UI\Window.fs" />
+    <Compile Include="UI\WindowManager.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Interop\Windows\Interop.Windows.fsproj" />
+    <ProjectReference Include="..\..\Threading\Threading.fsproj" />
+    <ProjectReference Include="..\..\UI\UI.fsproj" />
+    <ProjectReference Include="..\..\Utilities\Utilities.fsproj" />
+  </ItemGroup>
+
+</Project>

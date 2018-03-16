@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <NoWarn>9</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Polygon.fs" />
+    <Compile Include="Bitmap.fs" />
+    <Compile Include="IDrawingContext.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mathematics\Mathematics.fsproj" />
+    <ProjectReference Include="..\Utilities\Utilities.fsproj" />
+  </ItemGroup>
+
+</Project>

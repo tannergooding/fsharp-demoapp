@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Aliases.fs" />
+    <Compile Include="BITMAPINFOHEADER.fs" />
+    <Compile Include="CREATESTRUCT.fs" />
+    <Compile Include="POINT.fs" />
+    <Compile Include="RECT.fs" />
+    <Compile Include="MSG.fs" />
+    <Compile Include="WNDPROC.fs" />
+    <Compile Include="WNDCLASSEX.fs" />
+    <Compile Include="Windows.fs" />
+    <Compile Include="Gdi32.fs" />
+    <Compile Include="Msvfw32.fs" />
+    <Compile Include="Kernel32.fs" />
+    <Compile Include="User32.fs" />
+  </ItemGroup>
+
+</Project>

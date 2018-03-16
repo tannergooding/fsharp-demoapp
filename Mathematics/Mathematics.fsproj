@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <NoWarn>9</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Vector3.fs" />
+    <Compile Include="Matrix3x3.fs" />
+  </ItemGroup>
+
+</Project>

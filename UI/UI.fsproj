@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="PaintEventArgs.fs" />
+    <Compile Include="FlowDirection.fs" />
+    <Compile Include="ReadingDirection.fs" />
+    <Compile Include="IWindow.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.fsproj" />
+    <ProjectReference Include="..\Graphics\Graphics.fsproj" />
+  </ItemGroup>
+
+</Project>

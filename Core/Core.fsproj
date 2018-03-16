@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Mesh.fs" />
     <Compile Include="Point2D.fs" />
     <Compile Include="Size2D.fs" />
     <Compile Include="Rectangle.fs" />

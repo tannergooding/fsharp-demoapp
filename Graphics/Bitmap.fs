@@ -60,15 +60,15 @@ type Bitmap public (width:int32, height:int32) =
 
         if xDelta = 0 then
             for i = 0 to yDelta do
-                this.DrawPixel(int32 xPos, int32 yPos, color)
+                this.DrawPixel(xPos, yPos, color)
                 yPos <- yPos + 1.0f
         else if yDelta = 0 then
             for i = 0 to xDelta do
-                this.DrawPixel(int32 xPos, int32 yPos, color)
+                this.DrawPixel(xPos, yPos, color)
                 xPos <- xPos + float32 direction
         else if xDelta = yDelta then
             for i = 0 to xDelta do
-                this.DrawPixel(int32 xPos, int32 yPos, color)
+                this.DrawPixel(xPos, yPos, color)
                 xPos <- xPos + float32 direction
                 yPos <- yPos + 1.0f
         else if xDelta > yDelta then
@@ -85,7 +85,7 @@ type Bitmap public (width:int32, height:int32) =
                 errorTerm <- errorTerm + yDelta
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(int32 xPos, int32 yPos, color)
+                this.DrawPixel(xPos, yPos, color)
                 xPos <- xPos + float32 direction
             yPos <- yPos + 1.0f
 
@@ -98,12 +98,12 @@ type Bitmap public (width:int32, height:int32) =
                     errorTerm <- errorTerm - adjustDown
 
                 for pixelsDrawn = 0 to (runLength - 1) do
-                    this.DrawPixel(int32 xPos, int32 yPos, color)
+                    this.DrawPixel(xPos, yPos, color)
                     xPos <- xPos + float32 direction
                 yPos <- yPos + 1.0f
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(int32 xPos, int32 yPos, color)
+                this.DrawPixel(xPos, yPos, color)
                 xPos <- xPos + float32 direction
         else
             let pixelsPerStep:int32 = (yDelta / xDelta)
@@ -119,7 +119,7 @@ type Bitmap public (width:int32, height:int32) =
                 errorTerm <- errorTerm + yDelta
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(int32 xPos, int32 yPos, color)
+                this.DrawPixel(xPos, yPos, color)
                 yPos <- yPos + 1.0f
             xPos <- xPos + float32 direction
 
@@ -132,37 +132,38 @@ type Bitmap public (width:int32, height:int32) =
                     errorTerm <- errorTerm - adjustDown
 
                 for pixelsDrawn = 0 to (runLength - 1) do
-                    this.DrawPixel(int32 xPos, int32 yPos, color)
+                    this.DrawPixel(xPos, yPos, color)
                     yPos <- yPos + 1.0f
                 xPos <- xPos + float32 direction
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(int32 xPos, int32 yPos, color)
+                this.DrawPixel(xPos, yPos, color)
                 yPos <- yPos + 1.0f
 
-    member public this.DrawPixel(x:int32, y:int32, color:uint32) : unit =
-        let index:int32 = ((y * width) + x)
+    member public this.DrawPixel(x:float32, y:float32, color:uint32) : unit =
+        let index:int32 = int32 ((int32 y * width) + int32 x)
 
         if (index < 0) && (index >= pixelCount) then
             ExceptionUtilities.ThrowArgumentOutOfRangeException("index", index)
 
         this.DrawPixelUnsafe(index, color)
 
-    member public this.DrawPolygon(polygon:Polygon) : unit =
+    member public this.DrawPolygon(polygon:Polygon, isTriangles:bool, isCulling:bool) : unit =
         for i = 0 to (polygon.VerticeGroups.Count - 1) do
-            if not (this.ShouldCull(polygon, i)) then
+            if not isCulling || not (this.ShouldCull(polygon, i)) then
                 match polygon.VerticeGroups.[i].Length with
-                | 1 -> this.DrawPixel(int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].x, int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].y, 0u)
+                | 1 -> this.DrawPixel(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].x, polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].y, 0u)
                 | 2 -> this.DrawLine(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], 0u)
                 | 3 -> this.DrawTriangle(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], 0u)
-                | 4 -> this.DrawQuad(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[3]], 0u)
+                | 4 -> this.DrawQuad(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[3]], 0u, isTriangles)
                 | _ -> invalidOp "Bad VerticeGroup Length"
 
-    member public this.DrawQuad(point1:Vector3, point2:Vector3, point3:Vector3, point4:Vector3, color:uint32) : unit =
+    member public this.DrawQuad(point1:Vector3, point2:Vector3, point3:Vector3, point4:Vector3, color:uint32, isTriangles:bool) : unit =
         this.DrawLine(point1, point2, color)
         this.DrawLine(point2, point3, color)
         this.DrawLine(point3, point4, color)
         this.DrawLine(point4, point1, color)
+        if isTriangles then this.DrawLine(point1, point3, color)
 
     member public this.DrawTriangle(point1:Vector3, point2:Vector3, point3:Vector3, color:uint32) : unit =
         this.DrawLine(point1, point2, color)

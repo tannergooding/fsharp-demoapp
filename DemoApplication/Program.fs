@@ -38,7 +38,7 @@ type Program public () =
     let mutable lastHeaderUpdate:Timestamp = Unchecked.defaultof<Timestamp>
 
     let mutable rotation:Vector3 = new Vector3(45.0f, 45.0f, 45.0f)
-    let mutable rotationSpeed:Vector3 = new Vector3(1.0000f, 1.0000f, 1.0000f)
+    let mutable rotationSpeed:Vector3 = new Vector3(15.0000f, 15.0000f, 15.0000f)
     let mutable scale:Vector3 = new Vector3(100.0f, 100.0f, 1.0f)
     let mutable translation:Vector3 = new Vector3(0.0f, 0.0f, 0.0f)
 
@@ -131,10 +131,12 @@ type Program public () =
 
     member internal this.Render() : unit =
         this.RenderConsoleInfo()
+        this.RenderBuffer()
 
+    member internal this.RenderBuffer() : unit =
         let renderBuffer:Bitmap = buffers.[renderBufferIndex]
         renderBuffer.Clear(BackgroundColor)
-        renderBuffer.DrawPolygon(activePrimitive)
+        renderBuffer.DrawPolygon(activePrimitive, isTriangles, isCulling)
 
     member internal this.RenderConsoleInfo() : unit =
         if lastHeaderUpdate.Ticks >= TimeSpan.TicksPerSecond then
@@ -169,19 +171,28 @@ type Program public () =
         let rotY:float32 = (rotation.y * deg2rad)
         let rotZ:float32 = (rotation.z * deg2rad)
 
-        let cosX = MathF.Cos(rotX)
         let sinX = MathF.Sin(rotX)
+        let cosX = if MathF.Abs(sinX) = 1.0f then
+                       0.0f
+                   else
+                       MathF.Cos(rotX)
         let mX = new Matrix3x3(Vector3.UnitX, new Vector3(0.0f, cosX, -sinX), new Vector3(0.0f, sinX, cosX))
 
-        let cosY = MathF.Cos(rotY)
         let sinY = MathF.Sin(rotY)
+        let cosY = if MathF.Abs(sinY) = 1.0f then
+                       0.0f
+                   else
+                       MathF.Cos(rotY)
         let mY = new Matrix3x3(new Vector3(cosY, 0.0f, sinY), Vector3.UnitY, new Vector3(-sinY, 0.0f, cosY))
 
-        let cosZ = MathF.Cos(rotZ)
         let sinZ = MathF.Sin(rotZ)
+        let cosZ = if MathF.Abs(sinZ) = 1.0f then
+                       0.0f
+                   else
+                       MathF.Cos(rotZ)
         let mZ = new Matrix3x3(new Vector3(cosZ, -sinZ, 0.0f), new Vector3(sinZ, cosZ, 0.0f), Vector3.UnitZ)
 
-        let mR:Matrix3x3 = (mX * mY * mZ)
+        let mR:Matrix3x3 = ((mX * mY) * mZ)
 
         for i = 0 to (polygon.Vertices.Count - 1) do
             polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] * mR)
@@ -202,6 +213,18 @@ type Program public () =
             polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] + translation)
 
     member internal this.Update(delta:Timestamp) : unit =
+        activePrimitive.Reset()
+        totalUptime <- totalUptime + delta
+        lastHeaderUpdate <- lastHeaderUpdate + delta
+
+        this.UpdateBuffers()
+        this.UpdateRotation(delta)
+
+        this.ObjectToWorld(activePrimitive)
+        this.WorldToCamera(activePrimitive)
+        this.CameraToScreen(activePrimitive)
+
+    member internal this.UpdateBuffers() : unit =
         let width = window.Bounds.Size.Width
         let height = window.Bounds.Size.Height
 
@@ -213,15 +236,18 @@ type Program public () =
         else
             buffers.[renderBufferIndex].Resize(int32 width, int32 height)
 
-        totalUptime <- totalUptime + delta
-        lastHeaderUpdate <- lastHeaderUpdate + delta
+    member internal this.UpdateRotation(delta:Timestamp) : unit =
+        if isRotating then
+            rotation <- (rotation + (rotationSpeed * (float32 delta.Ticks / float32 TimeSpan.TicksPerSecond)))
 
-        activePrimitive.Reset()
-        if isRotating then rotation <- (rotation + rotationSpeed)
+            if rotation.x >= 360.0f then
+                rotation.x <- rotation.x - 360.0f
 
-        this.ObjectToWorld(activePrimitive)
-        this.WorldToCamera(activePrimitive)
-        this.CameraToScreen(activePrimitive)
+            if rotation.y >= 360.0f then
+                rotation.y <- rotation.y - 360.0f
+
+            if rotation.z >= 360.0f then
+                rotation.z <- rotation.z - 360.0f
 
     member internal this.WorldToCamera(polygon:Polygon) : unit =
         ()

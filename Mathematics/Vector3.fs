@@ -3,9 +3,9 @@ namespace DemoApplication.Mathematics
 [<Struct>]
 type Vector3 =
     // Fields
-    val public x:float32
-    val public y:float32
-    val public z:float32
+    val mutable public x:float32
+    val mutable public y:float32
+    val mutable public z:float32
 
     // Constructors
     new (x, y, z) =

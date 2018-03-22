@@ -8,7 +8,6 @@
   <ItemGroup>
     <Compile Include="Graphics\DrawingContext.fs" />
     <Compile Include="Threading\Dispatcher.fs" />
-    <Compile Include="Threading\DispatchManager.fs" />
     <Compile Include="UI\Window.fs" />
   </ItemGroup>
 

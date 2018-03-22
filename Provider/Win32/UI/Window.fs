@@ -173,7 +173,7 @@ type Window internal (windowManager:IWindowManager, entryPointModule:HMODULE) =
         0n
 
     member internal this.HandleWmMove(lParam:LPARAM) : LRESULT =
-        bounds.Location <- new Point2D(float32(Windows.LOWORD(unativeint lParam)), float32(Windows.HIWORD(unativeint lParam)))
+        bounds <- new Rectangle(new Point2D(float32(Windows.LOWORD(unativeint lParam)), float32(Windows.HIWORD(unativeint lParam))), bounds.Size)
         0n
 
     member internal this.HandleWmSetText(wParam:WPARAM, lParam:LPARAM) : LRESULT =
@@ -190,7 +190,7 @@ type Window internal (windowManager:IWindowManager, entryPointModule:HMODULE) =
 
     member internal this.HandleWmSize(wParam:WPARAM, lParam:LPARAM) : LRESULT =
         windowState <- LanguagePrimitives.EnumOfValue (int32 wParam)
-        bounds.Size <- new Size2D(float32(Windows.LOWORD(unativeint lParam)), float32(Windows.HIWORD(unativeint lParam)))
+        bounds <- new Rectangle(bounds.Location, new Size2D(float32(Windows.LOWORD(unativeint lParam)), float32(Windows.HIWORD(unativeint lParam))))
         0n
 
     member internal this.ProcessWindowMessage(msg:UINT, wParam:WPARAM, lParam:LPARAM) : LRESULT =

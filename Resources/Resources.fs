@@ -16,7 +16,7 @@ type Resources private () =
 
     static member public InvalidOperationExceptionMessage with get() : string = Resources.GetString "InvalidOperationExceptionMessage"
 
-    static member val public ResourceManager:ResourceManager = new ResourceManager(typeof<ResourceManager>)
+    static member val public ResourceManager:ResourceManager = new ResourceManager(typeof<Resources>)
 
     // Static Methods
     static member private GetString(name:string) : string =

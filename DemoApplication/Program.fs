@@ -34,8 +34,8 @@ type Program public () =
     let mutable maxFps:int32 = 0x80000000
     let mutable totalFrames:int64 = 0L
 
-    let mutable totalUptime:Timestamp = Unchecked.defaultof<Timestamp>
-    let mutable lastHeaderUpdate:Timestamp = Unchecked.defaultof<Timestamp>
+    let mutable totalUptime:TimeSpan = TimeSpan.Zero
+    let mutable lastHeaderUpdate:TimeSpan = TimeSpan.Zero
 
     let mutable rotation:Vector3 = new Vector3(45.0f, 45.0f, 45.0f)
     let mutable rotationSpeed:Vector3 = new Vector3(15.0000f, 15.0000f, 15.0000f)
@@ -108,7 +108,7 @@ type Program public () =
     member internal this.CameraToScreen(polygon:Polygon) : unit =
         ()
 
-    member internal this.Idle(delta:Timestamp) : unit =
+    member internal this.Idle(delta:TimeSpan) : unit =
         this.Update(delta)
         this.Render()
         this.Present()
@@ -161,7 +161,7 @@ type Program public () =
             Console.CursorLeft <- consoleLeft
             Console.CursorTop <- consoleTop
 
-            lastHeaderUpdate <- Unchecked.defaultof<Timestamp>
+            lastHeaderUpdate <- TimeSpan.Zero
             fps <- 0
 
     member internal this.RotateObject(polygon:Polygon) : unit =
@@ -212,7 +212,7 @@ type Program public () =
         for i = 0 to (polygon.Vertices.Count - 1) do
             polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] + translation)
 
-    member internal this.Update(delta:Timestamp) : unit =
+    member internal this.Update(delta:TimeSpan) : unit =
         activePrimitive.Reset()
         totalUptime <- totalUptime + delta
         lastHeaderUpdate <- lastHeaderUpdate + delta
@@ -236,7 +236,7 @@ type Program public () =
         else
             buffers.[renderBufferIndex].Resize(int32 width, int32 height)
 
-    member internal this.UpdateRotation(delta:Timestamp) : unit =
+    member internal this.UpdateRotation(delta:TimeSpan) : unit =
         if isRotating then
             rotation <- (rotation + (rotationSpeed * (float32 delta.Ticks / float32 TimeSpan.TicksPerSecond)))
 

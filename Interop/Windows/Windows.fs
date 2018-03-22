@@ -12,6 +12,6 @@ module Windows =
     let public NULL:int32 = 0
 
     // Methods
-    let LOWORD(value:unativeint) : uint16 = uint16(value &&& 0xFFFFun)
+    let inline LOWORD(value:unativeint) : uint16 = uint16(value &&& 0xFFFFun)
 
-    let HIWORD(value:unativeint) : uint16 = LOWORD(value >>> 16)
+    let inline HIWORD(value:unativeint) : uint16 = LOWORD(value >>> 16)

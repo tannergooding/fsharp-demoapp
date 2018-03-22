@@ -44,7 +44,16 @@ module User32 =
     let public SW_HIDE:int32 = 0
 
     [<Literal>]
+    let public SW_MAXIMIZE:int32 = 3
+
+    [<Literal>]
     let public SW_SHOW:int32 = 5
+
+    [<Literal>]
+    let public SW_MINIMIZE:int32 = 6
+
+    [<Literal>]
+    let public SW_RESTORE:int32 = 9
 
     // WA_* Constants
     [<Literal>]
@@ -70,6 +79,9 @@ module User32 =
     let public WM_ACTIVATE:UINT = 0x0006u
 
     [<Literal>]
+    let public WM_ENABLE:UINT = 0x000Au
+
+    [<Literal>]
     let public WM_SETTEXT:UINT = 0x000Cu
 
     [<Literal>]
@@ -90,6 +102,18 @@ module User32 =
     // WS_* Constants
     [<Literal>]
     let public WS_OVERLAPPED:DWORD = 0x00000000u
+
+    [<Literal>]
+    let public WS_MINIMIZE:DWORD = 0x20000000u
+
+    [<Literal>]
+    let public WS_VISIBLE:DWORD = 0x10000000u
+
+    [<Literal>]
+    let public WS_DISABLED:DWORD = 0x08000000u
+
+    [<Literal>]
+    let public WS_MAXIMIZE:DWORD = 0x01000000u
 
     [<Literal>]
     let public WS_CAPTION:DWORD = 0x00C00000u
@@ -117,7 +141,19 @@ module User32 =
     let public WS_EX_CLIENTEDGE:DWORD = 0x0200u
 
     [<Literal>]
+    let public WS_EX_RIGHT:DWORD = 0x1000u
+
+    [<Literal>]
+    let public WS_EX_RTLREADING:DWORD = 0x2000u
+
+    [<Literal>]
+    let public WS_EX_LEFTSCROLLBAR:DWORD = 0x4000u
+
+    [<Literal>]
     let public WS_EX_OVERLAPPEDWINDOW:DWORD = (WS_EX_WINDOWEDGE ||| WS_EX_CLIENTEDGE)
+
+    [<Literal>]
+    let public WS_EX_LAYOUTRTL:DWORD = 0x400000u
 
     // External Methods
     [<DllImport("User32", BestFitMapping = false, CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode, EntryPoint = "CreateWindowExW", ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)>]
@@ -152,6 +188,12 @@ module User32 =
     [<DllImport("User32", BestFitMapping = false, CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode, EntryPoint = "DispatchMessageW", ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)>]
     extern LRESULT DispatchMessage(
         [<In>] MSG& lpMsg
+    )
+
+    [<DllImport("User32", BestFitMapping = false, CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode, EntryPoint = "EnableWindow", ExactSpelling = true, PreserveSig = true, SetLastError = false, ThrowOnUnmappableChar = false)>]
+    extern BOOL EnableWindow(
+        [<In>] HWND hWnd,
+        [<In>] BOOL bEnable
     )
 
     [<DllImport("User32", BestFitMapping = false, CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode, EntryPoint = "GetActiveWindow", ExactSpelling = true, PreserveSig = true, SetLastError = true, ThrowOnUnmappableChar = false)>]

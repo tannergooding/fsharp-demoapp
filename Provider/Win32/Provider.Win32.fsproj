@@ -10,7 +10,6 @@
     <Compile Include="Threading\Dispatcher.fs" />
     <Compile Include="Threading\DispatchManager.fs" />
     <Compile Include="UI\Window.fs" />
-    <Compile Include="UI\WindowManager.fs" />
   </ItemGroup>
 
   <ItemGroup>

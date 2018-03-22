@@ -8,6 +8,7 @@
     <Compile Include="PaintEventArgs.fs" />
     <Compile Include="FlowDirection.fs" />
     <Compile Include="ReadingDirection.fs" />
+    <Compile Include="WindowState.fs" />
     <Compile Include="IWindow.fs" />
   </ItemGroup>
 

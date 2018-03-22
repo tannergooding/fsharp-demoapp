@@ -36,17 +36,13 @@ type DispatchManager public () =
 
     // Methods
     member this.GetDispatcher(thread:Thread) : IDispatcher =
-        let mutable dispatcher:IDispatcher = Unchecked.defaultof<IDispatcher>
+        match this.TryGetDispatcher(thread) with
+        | (true, dispatcher) -> dispatcher
+        | (false, _) -> new Dispatcher(this, thread) :> IDispatcher
 
-        if not (this.TryGetDispatcher(thread, ref dispatcher)) then
-            dispatcher <- new Dispatcher(this, thread)
-
-        dispatcher
-
-    member this.TryGetDispatcher(thread:Thread, [<Out>] dispatcher:IDispatcher ref) : bool =
+    member this.TryGetDispatcher(thread:Thread, [<Out>] dispatcher:byref<IDispatcher>) : bool =
         ExceptionUtilities.ThrowIfNull("thread", thread)
-
-        dispatchers.TryGetValue(thread, dispatcher)
+        dispatchers.TryGetValue(thread, ref dispatcher)
 
     // DemoApplication.Threading.IDispatchManager
     interface IDispatchManager with
@@ -56,4 +52,4 @@ type DispatchManager public () =
 
         // Methods
         member this.GetDispatcher(thread:Thread) : IDispatcher = this.GetDispatcher(thread)
-        member this.TryGetDispatcher(thread:Thread, [<Out>] dispatcher:IDispatcher ref) : bool = this.TryGetDispatcher(thread, dispatcher)
+        member this.TryGetDispatcher(thread:Thread, [<Out>] dispatcher:byref<IDispatcher>) : bool = this.TryGetDispatcher(thread, ref dispatcher)

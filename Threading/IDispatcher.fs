@@ -23,4 +23,4 @@ and [<AllowNullLiteral>] IDispatchManager =
 
     // Methods
     abstract member GetDispatcher : thread:Thread -> IDispatcher
-    abstract member TryGetDispatcher : thread:Thread * [<Out>] dispatcher:IDispatcher ref -> bool
+    abstract member TryGetDispatcher : thread:Thread * [<Out>] dispatcher:byref<IDispatcher> -> bool

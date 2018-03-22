@@ -27,15 +27,30 @@ type Vector3 =
                     left.y + right.y,
                     left.z + right.z)
 
+    static member (-) (left:Vector3, right:Vector3) =
+        new Vector3(left.x - right.x,
+                    left.y - right.y,
+                    left.z - right.z)
+
     static member (*) (left:Vector3, right:float32) =
         new Vector3(left.x * right,
                     left.y * right,
                     left.z * right)
 
+    static member (*) (left:Vector3, right:Vector3) =
+        new Vector3(left.x * right.x,
+                    left.y * right.y,
+                    left.z * right.z)
+
     static member (/) (left:Vector3, right:float32) =
         new Vector3(left.x / right,
                     left.y / right,
                     left.z / right)
+
+    static member (/) (left:Vector3, right:Vector3) =
+        new Vector3(left.x / right.x,
+                    left.y / right.y,
+                    left.z / right.z)
 
     // Static Methods
     static member DotProduct(left:Vector3, right:Vector3) : float32 =

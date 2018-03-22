@@ -35,61 +35,58 @@ type Bitmap public (width:int32, height:int32) =
         GC.SuppressFinalize(this)
 
     member public this.DrawLine(point1:Vector3, point2:Vector3, color:uint32) : unit =
-        let mutable xMin:float32 = point1.x
-        let mutable xMax:float32 = point2.x
-        let mutable yMin:float32 = point1.y
-        let mutable yMax:float32 = point2.y
+        let (top:Vector3, bottom:Vector3) =
+            if point1.y <= point2.y then
+                (point1, point2)
+            else
+                (point2, point1)
 
-        if point1.y > point2.y then
-            xMin <- point2.x
-            xMax <- point1.x
+        let (deltaX:int32, deltaY:int32, direction:int32) = 
+            let result = bottom - top
 
-            yMin <- point2.y
-            yMax <- point1.y
+            if result.x >= 0.0f then
+                (int32 result.x, int32 result.y, 1)
+            else
+                (-(int32 result.x), int32 result.y, -1)
 
-        let mutable xDelta:int32 = int32 (xMax - xMin)
-        let yDelta:int32 = int32 (yMax - yMin)
-        let mutable direction:int32 = 1
+        let mutable (posX:int32, posY:int32) = (int32 top.x, int32 top.y)
 
-        if xDelta < 0 then
-            xDelta <- -xDelta
-            direction <- -1
+        if deltaX = 0 then
+            for i = 0 to deltaY do
+                this.DrawPixel(posX, posY, color)
+                posY <- posY + 1
+        else if deltaY = 0 then
+            for i = 0 to deltaX do
+                this.DrawPixel(posX, posY, color)
+                posX <- posX + direction
+        else if deltaX = deltaY then
+            for i = 0 to deltaX do
+                this.DrawPixel(posX, posY, color)
+                posX <- posX + direction
+                posY <- posY + 1
+        else if deltaX > deltaY then
+            let pixelsPerStep:int32 = (deltaX / deltaY)
+            let adjustUp:int32 = (deltaX % deltaY) * 2
+            let adjustDown:int32 = (deltaY * 2)
 
-        let mutable xPos:float32 = xMin
-        let mutable yPos:float32 = yMin
+            let initialPixelStep:int32 = 
+                if (adjustUp = 0) && ((pixelsPerStep &&& 1) = 0) then
+                    (pixelsPerStep / 2)
+                else
+                    (pixelsPerStep / 2) + 1
 
-        if xDelta = 0 then
-            for i = 0 to yDelta do
-                this.DrawPixel(xPos, yPos, color)
-                yPos <- yPos + 1.0f
-        else if yDelta = 0 then
-            for i = 0 to xDelta do
-                this.DrawPixel(xPos, yPos, color)
-                xPos <- xPos + float32 direction
-        else if xDelta = yDelta then
-            for i = 0 to xDelta do
-                this.DrawPixel(xPos, yPos, color)
-                xPos <- xPos + float32 direction
-                yPos <- yPos + 1.0f
-        else if xDelta > yDelta then
-            let pixelsPerStep:int32 = (xDelta / yDelta)
-            let mutable initialPixelStep:int32 = (pixelsPerStep / 2) + 1
-            let adjustUp:int32 = (xDelta % yDelta) * 2
-            let adjustDown:int32 = (yDelta * 2)
-            let mutable errorTerm:int32 = (xDelta % yDelta) - (yDelta * 2)
-
-            if (adjustUp = 0) && ((pixelsPerStep &&& 1) = 0) then
-                initialPixelStep <- initialPixelStep- 1
-
-            if (pixelsPerStep &&& 1) <> 0 then
-                errorTerm <- errorTerm + yDelta
+            let mutable errorTerm:int32 =
+                if (pixelsPerStep &&& 1) <> 0 then
+                    (deltaX % deltaY) - deltaY
+                else
+                    (deltaX % deltaY) - (deltaY * 2)
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(xPos, yPos, color)
-                xPos <- xPos + float32 direction
-            yPos <- yPos + 1.0f
+                this.DrawPixel(posX, posY, color)
+                posX <- posX + direction
+            posY <- posY + 1
 
-            for i = 0 to (yDelta - 2) do
+            for i = 0 to (deltaY - 2) do
                 let mutable runLength:int32 = pixelsPerStep
                 errorTerm <- errorTerm + adjustUp
 
@@ -98,32 +95,36 @@ type Bitmap public (width:int32, height:int32) =
                     errorTerm <- errorTerm - adjustDown
 
                 for pixelsDrawn = 0 to (runLength - 1) do
-                    this.DrawPixel(xPos, yPos, color)
-                    xPos <- xPos + float32 direction
-                yPos <- yPos + 1.0f
+                    this.DrawPixel(posX, posY, color)
+                    posX <- posX + direction
+                posY <- posY + 1
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(xPos, yPos, color)
-                xPos <- xPos + float32 direction
+                this.DrawPixel(posX, posY, color)
+                posX <- posX + direction
         else
-            let pixelsPerStep:int32 = (yDelta / xDelta)
-            let mutable initialPixelStep:int32 = (pixelsPerStep / 2) + 1
-            let adjustUp:int32 = (yDelta % xDelta) * 2
-            let adjustDown:int32 = (xDelta * 2)
-            let mutable errorTerm:int32 = (yDelta % xDelta) - (xDelta * 2)
+            let pixelsPerStep:int32 = (deltaY / deltaX)
+            let adjustUp:int32 = (deltaY % deltaX) * 2
+            let adjustDown:int32 = (deltaX * 2)
 
-            if (adjustUp = 0) && ((pixelsPerStep &&& 1) = 0) then
-                initialPixelStep <- initialPixelStep- 1
+            let initialPixelStep:int32 = 
+                if (adjustUp = 0) && ((pixelsPerStep &&& 1) = 0) then
+                    (pixelsPerStep / 2)
+                else
+                    (pixelsPerStep / 2) + 1
 
-            if (pixelsPerStep &&& 1) <> 0 then
-                errorTerm <- errorTerm + yDelta
+            let mutable errorTerm:int32 =
+                if (pixelsPerStep &&& 1) <> 0 then
+                    (deltaY % deltaX) - deltaX
+                else
+                    (deltaY % deltaX) - (deltaX * 2)
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(xPos, yPos, color)
-                yPos <- yPos + 1.0f
-            xPos <- xPos + float32 direction
+                this.DrawPixel(posX, posY, color)
+                posY <- posY + 1
+            posX <- posX + direction
 
-            for i = 0 to (xDelta - 2) do
+            for i = 0 to (deltaX - 2) do
                 let mutable runLength:int32 = pixelsPerStep
                 errorTerm <- errorTerm + adjustUp
 
@@ -132,27 +133,24 @@ type Bitmap public (width:int32, height:int32) =
                     errorTerm <- errorTerm - adjustDown
 
                 for pixelsDrawn = 0 to (runLength - 1) do
-                    this.DrawPixel(xPos, yPos, color)
-                    yPos <- yPos + 1.0f
-                xPos <- xPos + float32 direction
+                    this.DrawPixel(posX, posY, color)
+                    posY <- posY + 1
+                posX <- posX + direction
 
             for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(xPos, yPos, color)
-                yPos <- yPos + 1.0f
+                this.DrawPixel(posX, posY, color)
+                posY <- posY + 1
 
-    member public this.DrawPixel(x:float32, y:float32, color:uint32) : unit =
-        let index:int32 = int32 ((int32 y * width) + int32 x)
-
-        if (index < 0) && (index >= pixelCount) then
-            ExceptionUtilities.ThrowArgumentOutOfRangeException("index", index)
-
-        this.DrawPixelUnsafe(index, color)
+    member public this.DrawPixel(x:int32, y:int32, color:uint32) : unit =
+        if ((x >= 0) && (x < width) && (y >= 0) && (y < height)) then
+            let index:int32 = ((y * width) + x)
+            this.DrawPixelUnsafe(index, color)
 
     member public this.DrawPolygon(polygon:Polygon, isTriangles:bool, isCulling:bool) : unit =
         for i = 0 to (polygon.VerticeGroups.Count - 1) do
             if not isCulling || not (this.ShouldCull(polygon, i)) then
                 match polygon.VerticeGroups.[i].Length with
-                | 1 -> this.DrawPixel(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].x, polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].y, 0u)
+                | 1 -> this.DrawPixel(int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].x, int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].y, 0u)
                 | 2 -> this.DrawLine(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], 0u)
                 | 3 -> this.DrawTriangle(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], 0u)
                 | 4 -> this.DrawQuad(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[3]], 0u, isTriangles)

@@ -1,7 +1,6 @@
 ﻿namespace DemoApplication.Graphics
 
 open DemoApplication.Mathematics
-open DemoApplication.Utilities
 open Microsoft.FSharp.NativeInterop
 open System
 open System.Runtime.InteropServices
@@ -34,112 +33,188 @@ type Bitmap public (width:int32, height:int32) =
         this.Dispose true
         GC.SuppressFinalize(this)
 
+    // This is based on L36-2.C from "Michael Abrash's Graphics Programming Black Book"
     member public this.DrawLine(point1:Vector3, point2:Vector3, color:uint32) : unit =
-        let (top:Vector3, bottom:Vector3) =
-            if point1.y <= point2.y then
-                (point1, point2)
+        // Draw from top to bottom to reduce the cases that need handled and to ensure
+        // a deterministic line is drawn for the same endpoints
+        let (topX:int32, topY:int32, bottomX:int32, bottomY:int32) =
+            if point1.y < point2.y then
+                (int32 point1.x, int32 point1.y, int32 point2.x, int32 point2.y)
             else
-                (point2, point1)
+                (int32 point2.x, int32 point2.y, int32 point1.x, int32 point1.y)
 
-        let (deltaX:int32, deltaY:int32, direction:int32) = 
-            let result = bottom - top
+        // Cache width and height locally, since they are mutable
+        let (width:int32, height:int32) = (width, height)
 
-            if result.x >= 0.0f then
-                (int32 result.x, int32 result.y, 1)
-            else
-                (-(int32 result.x), int32 result.y, -1)
+        // We are visible if the line crosses through any part of the bitmap
+        //  * The top X needs to be before the right of the bitmap
+        //  * The bottom X needs to be after the left of the bitmap
+        //  * The top or bottom Y needs to be before the bottom of the bitmap
+        //  * The top or bottom Y needs to be after the top of the bitmap
+        let isVisible = (topY <= height) && (bottomY >= 0) &&
+                        ((topX <= width) || (bottomX <= width)) &&
+                        ((topX >= 0) || (bottomX >= 0))
 
-        let mutable (posX:int32, posY:int32) = (int32 top.x, int32 top.y)
+        if isVisible then
+            // Clip the top if it exists outside the bitmap
+            //  When either component of the top point exists outside the bounds
+            //  of the bitmap, we need to determine the closest point that would
+            //  be drawn that is still in bounds. To determine that point, we take
+            //  the inverse of the opposite component and multiply it by the run length.
+            let (startX:int32, startY:int32) =
+                if topY < 0 then
+                    let x:int32 = topX + ((-topY) * int32 (float32 (bottomX - topX) / float32 (bottomY - topY)))
 
-        if deltaX = 0 then
-            for i = 0 to deltaY do
-                this.DrawPixel(posX, posY, color)
-                posY <- posY + 1
-        else if deltaY = 0 then
-            for i = 0 to deltaX do
-                this.DrawPixel(posX, posY, color)
-                posX <- posX + direction
-        else if deltaX = deltaY then
-            for i = 0 to deltaX do
-                this.DrawPixel(posX, posY, color)
-                posX <- posX + direction
-                posY <- posY + 1
-        else if deltaX > deltaY then
-            let pixelsPerStep:int32 = (deltaX / deltaY)
-            let adjustUp:int32 = (deltaX % deltaY) * 2
-            let adjustDown:int32 = (deltaY * 2)
-
-            let initialPixelStep:int32 = 
-                if (adjustUp = 0) && ((pixelsPerStep &&& 1) = 0) then
-                    (pixelsPerStep / 2)
+                    if topX < 0 then
+                        if x < 0 then
+                            let y:int32 = topY + ((-topX) * int32 (float32 (bottomY - topY) / float32 (bottomX - topX)))
+                            (0, y)
+                        else
+                            (x, 0)
+                    else if topX >= width then
+                        if x >= width then
+                            let x:int32 = (width - 1)
+                            let y:int32 = topY + ((x - topX) * int32 (float32 (bottomY - topY) / float32 (bottomX - topX)))
+                            (x, y)
+                        else
+                            (x, 0)
+                    else
+                        (x, 0)
+                else if topX < 0 then
+                    let y:int32 = topY + ((-topX) * int32 (float32 (bottomY - topY) / float32 (bottomX - topX)))
+                    (0, y)
+                else if topX >= width then
+                    let x:int32 = (width - 1)
+                    let y:int32 = topY + ((x - topX) * int32 (float32 (bottomY - topY) / float32 (bottomX - topX)))
+                    (x, y)
                 else
-                    (pixelsPerStep / 2) + 1
+                    (topX, topY)
 
-            let mutable errorTerm:int32 =
-                if (pixelsPerStep &&& 1) <> 0 then
-                    (deltaX % deltaY) - deltaY
+            // Clip the bottom if it exists outside the bitmap
+            //  When either component of the top point exists outside the bounds
+            //  of the bitmap, we need to determine the closest point that would
+            //  be drawn that is still in bounds. To determine that point, we take
+            //  the inverse of the opposite component and multiply it by the run length.
+            let (endX:int32, endY:int32) =
+                if bottomY >= height then
+                    let y:int32 = (height - 1)
+                    let x:int32 = bottomX + ((y - bottomY) * int32 (float32 (topX - bottomX) / float32 (topY - bottomY)))
+
+                    if bottomX < 0 then
+                        if x < 0 then
+                            let y:int32 = bottomY + ((-bottomX) * int32 (float32 (topY - bottomY) / float32 (topX - bottomX)))
+                            (0, y)
+                        else
+                            (x, y)
+                    else if bottomX >= width then
+                        if x >= width then
+                            let x:int32 = (width - 1)
+                            let y:int32 = bottomY + ((x - bottomX) * int32 (float32 (topY - bottomY) / float32 (topX - bottomX)))
+                            (x, y)
+                        else
+                            (x, y)
+                    else
+                        (x, y)
+                else if bottomX < 0 then
+                    let y:int32 = bottomY + ((-bottomX) * int32 (float32 (topY - bottomY) / float32 (topX - bottomX)))
+                    (0, y)
+                else if bottomX >= width then
+                    let x:int32 = (width - 1)
+                    let y:int32 = bottomY + ((x - bottomX) * int32 (float32 (topY - bottomY) / float32 (topX - bottomX)))
+                    (x, y)
                 else
-                    (deltaX % deltaY) - (deltaY * 2)
+                    (bottomX, bottomY)
 
-            for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(posX, posY, color)
-                posX <- posX + direction
-            posY <- posY + 1
+            // We are visible if the line crosses through any part of the bitmap
+            //  * The top X needs to be after the left and before the right of the bitmap
+            //  * The bottom X needs to be after the left and before the right of the bitmap
+            //  * The top Y needs to be after the top and before the bottom of the bitmap
+            //  * The bottom Y needs to be after the top and before the bottom of the bitmap
+            let isVisible = (startX >= 0) && (startX < width) &&
+                            (startY >= 0) && (startY < height) &&
+                            (endX >= 0) && (endX < width) &&
+                            (endY >= 0) && (endY < height)
 
-            for i = 0 to (deltaY - 2) do
-                let mutable runLength:int32 = pixelsPerStep
-                errorTerm <- errorTerm + adjustUp
+            if isVisible then
+                // Determine if we are going left to right (direction = 1) or right to left (direction = -1)
+                let (deltaX:int32, deltaY:int32, direction:int32) = 
+                    let x:int32 = (endX - startX)
+                    let y:int32 = (endY - startY)
 
-                if errorTerm > 0 then
-                    runLength <- runLength + 1
-                    errorTerm <- errorTerm - adjustDown
+                    if x >= 0 then
+                        (x, y, 1)
+                    else
+                        (-x, y, -1)
 
-                for pixelsDrawn = 0 to (runLength - 1) do
-                    this.DrawPixel(posX, posY, color)
-                    posX <- posX + direction
-                posY <- posY + 1
+                let mutable index:int32 = (startY * width) + startX
 
-            for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(posX, posY, color)
-                posX <- posX + direction
-        else
-            let pixelsPerStep:int32 = (deltaY / deltaX)
-            let adjustUp:int32 = (deltaY % deltaX) * 2
-            let adjustDown:int32 = (deltaX * 2)
-
-            let initialPixelStep:int32 = 
-                if (adjustUp = 0) && ((pixelsPerStep &&& 1) = 0) then
-                    (pixelsPerStep / 2)
+                if deltaX = 0 then
+                    // Vertical Line
+                    for i = 0 to deltaY do
+                        this.DrawPixelUnsafe(index, color)
+                        index <- index + width
+                else if deltaY = 0 then
+                    // Horizontal Line
+                    for i = 0 to deltaX do
+                        this.DrawPixelUnsafe(index, color)
+                        index <- index + direction
+                else if deltaX = deltaY then
+                    // Diagonal Line
+                    for i = 0 to deltaX do
+                        this.DrawPixelUnsafe(index, color)
+                        index <- index + (direction + width)
                 else
-                    (pixelsPerStep / 2) + 1
+                    let (major:int32, minor:int32, majorAdv:int32, minorAdv:int32) =
+                        if deltaX > deltaY then
+                            // X-Major Line
+                            (deltaX, deltaY, direction, width)
+                        else
+                            // Y-Major Line
+                            (deltaY, deltaX, width, direction)
 
-            let mutable errorTerm:int32 =
-                if (pixelsPerStep &&& 1) <> 0 then
-                    (deltaY % deltaX) - deltaX
-                else
-                    (deltaY % deltaX) - (deltaX * 2)
+                    let (pixelsPerStep:int32, pixelsPerStepRem:int32) = Math.DivRem(major, minor)
 
-            for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(posX, posY, color)
-                posY <- posY + 1
-            posX <- posX + direction
+                    let adjustUp:int32 = pixelsPerStepRem * 2
+                    let adjustDown:int32 = (minor * 2)
 
-            for i = 0 to (deltaX - 2) do
-                let mutable runLength:int32 = pixelsPerStep
-                errorTerm <- errorTerm + adjustUp
+                    let initialPixelStep:int32 = 
+                        if (adjustUp = 0) && ((pixelsPerStep &&& 1) = 0) then
+                            (pixelsPerStep / 2)
+                        else
+                            (pixelsPerStep / 2) + 1
 
-                if errorTerm > 0 then
-                    runLength <- runLength + 1
-                    errorTerm <- errorTerm - adjustDown
+                    let mutable errorTerm:int32 =
+                        if (pixelsPerStep &&& 1) <> 0 then
+                            pixelsPerStepRem - minor
+                        else
+                            pixelsPerStepRem - (minor * 2)
 
-                for pixelsDrawn = 0 to (runLength - 1) do
-                    this.DrawPixel(posX, posY, color)
-                    posY <- posY + 1
-                posX <- posX + direction
+                    assert (initialPixelStep <> 0)
 
-            for pixelsDrawn = 0 to (initialPixelStep - 1) do
-                this.DrawPixel(posX, posY, color)
-                posY <- posY + 1
+                    for pixelsDrawn = 0 to (initialPixelStep - 1) do
+                        this.DrawPixelUnsafe(index, color)
+                        index <- index + majorAdv
+                    index <- index + minorAdv
+
+                    assert (minor <> 0)
+
+                    for i = 0 to (minor - 2) do
+                        let mutable runLength:int32 = pixelsPerStep
+                        errorTerm <- errorTerm + adjustUp
+
+                        if errorTerm > 0 then
+                            runLength <- runLength + 1
+                            errorTerm <- errorTerm - adjustDown
+
+                        if runLength <> 0 then
+                            for pixelsDrawn = 0 to (runLength - 1) do
+                                this.DrawPixelUnsafe(index, color)
+                                index <- index + majorAdv
+                        index <- index + minorAdv
+
+                    for pixelsDrawn = 0 to (initialPixelStep - 1) do
+                        this.DrawPixelUnsafe(index, color)
+                        index <- index + majorAdv
 
     member public this.DrawPixel(x:int32, y:int32, color:uint32) : unit =
         if ((x >= 0) && (x < width) && (y >= 0) && (y < height)) then

@@ -4,6 +4,8 @@ open DemoApplication.Mathematics
 open Microsoft.FSharp.NativeInterop
 open System
 open System.Runtime.InteropServices
+open System.Runtime.Intrinsics
+open System.Runtime.Intrinsics.X86
 
 type Bitmap public (width:int32, height:int32) =
     // Fields
@@ -26,8 +28,26 @@ type Bitmap public (width:int32, height:int32) =
 
     // Methods
     member public this.Clear(color:uint32) : unit =
+#if HWIntrinsics
+        let pixelCount:int32 = pixelCount
+        let remainder:int32 = pixelCount % 4
+        let lastBlockIndex:int32 = pixelCount - remainder
+        let vectorColor:Vector128<uint32> = Sse2.SetAllVector128(color)
+
+        let mutable index:int32 = 0
+
+        while index <> lastBlockIndex do
+            assert ((index >= 0) && (index < pixelCount))
+            let buffer:nativeptr<uint32> = NativePtr.add (NativePtr.ofNativeInt<uint32> handle) index
+            Sse2.Store(buffer, vectorColor)
+            index <- index + 4
+
+        for index = lastBlockIndex to (pixelCount - 1) do
+            this.DrawPixelUnsafe(index, color)
+#else
         for index = 0 to (pixelCount - 1) do
             this.DrawPixelUnsafe(index, color)
+#endif
 
     member public this.Dispose() : unit =
         this.Dispose true

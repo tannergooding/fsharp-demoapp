@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!--
+    Directory.Build.props is automatically picked up and imported by
+    Microsoft.Common.props. This file needs to exist, even if empty so that
+    files in the parent directory tree, with the same name, are not imported
+    instead. The import fairly early and only Sdk.props will have been imported
+    beforehand. We also don't need to add ourselves to MSBuildAllProjects, as
+    that is done by the file that imports us.
+  -->
+
+  <!-- Default settings that are used by other settings -->
+  <PropertyGroup>
+    <BaseArtifactsPath>$(MSBuildThisFileDirectory)artifacts/</BaseArtifactsPath>
+    <BaseArtifactsPathSuffix>$(TerraFXProjectCategory)/$(MSBuildProjectName)</BaseArtifactsPathSuffix>
+    <RepositoryUrl>https://github.com/tannergooding/fsharp-demoapp/</RepositoryUrl>
+  </PropertyGroup>
+
+  <!-- Default settings that explicitly differ from the Sdk.props defaults  -->
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(BaseArtifactsPath)obj/$(BaseArtifactsPathSuffix)/</BaseIntermediateOutputPath>
+    <DefineConstants>$(DefineConstants);HWIntrinsics</DefineConstants>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- Default settings that explicitly differ from the Sdk.targets defaults-->
+  <PropertyGroup>
+    <Authors>Tanner Gooding and Contributors</Authors>
+    <BaseOutputPath>$(BaseArtifactsPath)bin/$(BaseArtifactsPathSuffix)/</BaseOutputPath>
+    <Company>Tanner Gooding</Company>
+    <PackageOutputPath>$(BaseArtifactsPath)pkg/$(BaseArtifactsPathSuffix)/$(Configuration)/</PackageOutputPath>
+    <Product>F# Demo Application</Product>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>alpha</VersionSuffix>
+  </PropertyGroup>
+
+  <!-- Default settings that are otherwise undefined -->
+  <PropertyGroup>
+    <Copyright>Copyright © Tanner Gooding and Contributors</Copyright>
+    <Description>A software renderer written in F#.</Description>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <OverwriteReadOnlyFiles>true</OverwriteReadOnlyFiles>
+    <PackageLicenseUrl>$(RepositoryUrl)blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RestoreSources>
+      https://api.nuget.org/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json
+    </RestoreSources>
+  </PropertyGroup>
+
+  <!-- Default imports that are consumed by all projects -->
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.Intrinsics.Experimental" Version="4.5.0-preview2-26308-02" />
+  </ItemGroup>
+
+</Project>

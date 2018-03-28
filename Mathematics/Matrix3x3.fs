@@ -1,33 +1,42 @@
 ﻿namespace DemoApplication.Mathematics
 
+open System.Runtime.Intrinsics
+open System.Runtime.Intrinsics.X86
+
 [<Struct>]
 type Matrix3x3 =
     // Fields
-    val public x:Vector3
-    val public y:Vector3
-    val public z:Vector3
+    val public X:Vector3
+    val public Y:Vector3
+    val public Z:Vector3
 
     // Constructors
-    new (x, y, z) =
-        { x = x; y = y; z = z }
+    public new (x:Vector3, y:Vector3, z:Vector3) =
+        { X = x; Y = y; Z = z }
 
     // Operators
-    static member (*) (left:Matrix3x3, right:Matrix3x3) =
-        let x:Vector3 = new Vector3((left.x.x * right.x.x) + (left.x.y * right.y.x) + (left.x.z * right.z.x),
-                                    (left.x.x * right.x.y) + (left.x.y * right.y.y) + (left.x.z * right.z.y),
-                                    (left.x.x * right.x.z) + (left.x.y * right.y.z) + (left.x.z * right.z.z))
-
-        let y:Vector3 = new Vector3((left.y.x * right.x.x) + (left.y.y * right.y.x) + (left.y.z * right.z.x),
-                                    (left.y.x * right.x.y) + (left.y.y * right.y.y) + (left.y.z * right.z.y),
-                                    (left.y.x * right.x.z) + (left.y.y * right.y.z) + (left.y.z * right.z.z))
-
-        let z:Vector3 = new Vector3((left.z.x * right.x.x) + (left.z.y * right.y.x) + (left.z.z * right.z.x),
-                                    (left.z.x * right.x.y) + (left.z.y * right.y.y) + (left.z.z * right.z.y),
-                                    (left.z.x * right.x.z) + (left.z.y * right.y.z) + (left.z.z * right.z.z))
+    static member public (*) (left:Matrix3x3, right:Matrix3x3) : Matrix3x3 =
+        let x:Vector3 = left.X * right
+        let y:Vector3 = left.Y * right
+        let z:Vector3 = left.Z * right
 
         new Matrix3x3(x, y, z)
 
-    static member (*) (left:Vector3, right:Matrix3x3) =
-        new Vector3((left.x * right.x.x) + (left.y * right.y.x) + (left.z * right.z.x),
-                    (left.x * right.x.y) + (left.y * right.y.y) + (left.z * right.z.y),
-                    (left.x * right.x.z) + (left.y * right.y.z) + (left.z * right.z.z))
+    static member public (*) (left:Vector3, right:Matrix3x3) : Vector3 =
+#if HWIntrinsics
+        let mutable xx:Vector128<float32> = IntrinsicMath.Permute(left.Value, IntrinsicMath.Shuffle(0uy, 0uy, 0uy, 0uy))
+        let mutable xy:Vector128<float32> = IntrinsicMath.Permute(left.Value, IntrinsicMath.Shuffle(1uy, 1uy, 1uy, 1uy))
+        let mutable xz:Vector128<float32> = IntrinsicMath.Permute(left.Value, IntrinsicMath.Shuffle(2uy, 2uy, 2uy, 2uy))
+
+        xx <- Sse.Multiply(xx, right.X.Value)
+        xy <- Sse.Multiply(xy, right.Y.Value)
+        xz <- Sse.Multiply(xz, right.Z.Value)
+
+        let mutable temp:Vector128<float32> = Sse.Add(xx, xy)
+        temp <- Sse.Add(temp, xz)
+        new Vector3(temp)
+#else
+        new Vector3((left.X * right.X.X) + (left.Y * right.Y.X) + (left.Z * right.Z.X),
+                    (left.X * right.X.Y) + (left.Y * right.Y.Y) + (left.Z * right.Z.Y),
+                    (left.X * right.X.Z) + (left.Y * right.Y.Z) + (left.Z * right.Z.Z))
+#endif

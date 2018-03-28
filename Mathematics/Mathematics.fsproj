@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="IntrinsicMath.fs" />
     <Compile Include="Vector3.fs" />
     <Compile Include="Matrix3x3.fs" />
   </ItemGroup>

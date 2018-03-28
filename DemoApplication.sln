@@ -25,7 +25,13 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Utilities", "Utilities\Util
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Resources", "Resources\Resources.fsproj", "{BBA4DF36-625E-4E52-89F3-B14D7F17DE67}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Graphics", "Graphics\Graphics.fsproj", "{17938F37-0F2E-4C36-862B-63C3B3AF1137}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Graphics", "Graphics\Graphics.fsproj", "{17938F37-0F2E-4C36-862B-63C3B3AF1137}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{19E15CD9-8B1E-444D-AC4B-67545D8B5809}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

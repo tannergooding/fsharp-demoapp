@@ -40,8 +40,8 @@ type Bitmap public (width:int32, height:int32) =
             // a deterministic line is drawn for the same endpoints. We also prefer drawing
             // from left to right, in the scenario where y1 = y2.
             let ((x1:int32, y1:int32), (x2:int32, y2:int32)) =
-                let (x1:int32, y1:int32) = (int32 point1.x, int32 point1.y)
-                let (x2:int32, y2:int32) = (int32 point2.x, int32 point2.y)
+                let (x1:int32, y1:int32) = (int32 point1.X, int32 point1.Y)
+                let (x2:int32, y2:int32) = (int32 point2.X, int32 point2.Y)
 
                 if (y1 < y2) || ((y1 = y2) && (x1 < x2)) then
                     ((x1, y1), (x2, y2))
@@ -71,7 +71,7 @@ type Bitmap public (width:int32, height:int32) =
         for i = 0 to (polygon.VerticeGroups.Count - 1) do
             if not isCulling || not (this.ShouldCull(polygon, i)) then
                 match polygon.VerticeGroups.[i].Length with
-                | 1 -> this.DrawPixel(int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].x, int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].y, 0u)
+                | 1 -> this.DrawPixel(int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].X, int32 polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]].Y, 0u)
                 | 2 -> this.DrawLine(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], 0u)
                 | 3 -> this.DrawTriangle(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], 0u)
                 | 4 -> this.DrawQuad(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[3]], 0u, isTriangles)

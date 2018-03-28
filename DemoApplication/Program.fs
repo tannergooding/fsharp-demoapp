@@ -167,9 +167,9 @@ type Program public () =
     member internal this.RotateObject(polygon:Polygon) : unit =
         let deg2rad:float32 = MathF.PI / 180.0f
 
-        let rotX:float32 = (rotation.x * deg2rad)
-        let rotY:float32 = (rotation.y * deg2rad)
-        let rotZ:float32 = (rotation.z * deg2rad)
+        let rotX:float32 = (rotation.X * deg2rad)
+        let rotY:float32 = (rotation.Y * deg2rad)
+        let rotZ:float32 = (rotation.Z * deg2rad)
 
         let sinX = MathF.Sin(rotX)
         let cosX = if MathF.Abs(sinX) = 1.0f then
@@ -201,9 +201,9 @@ type Program public () =
             polygon.ModifiedNormals.[i] <- (polygon.ModifiedNormals.[i] * mR)
 
     member internal this.ScaleObject(polygon:Polygon) : unit =
-        let m:Matrix3x3 = new Matrix3x3(new Vector3(scale.x, 0.0f, 0.0f),
-                                        new Vector3(0.0f, scale.y, 0.0f),
-                                        new Vector3(0.0f, 0.0f, scale.z))
+        let m:Matrix3x3 = new Matrix3x3(new Vector3(scale.X, 0.0f, 0.0f),
+                                        new Vector3(0.0f, scale.Y, 0.0f),
+                                        new Vector3(0.0f, 0.0f, scale.Z))
 
         for i = 0 to (polygon.Vertices.Count - 1) do
             polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] * m)
@@ -240,14 +240,14 @@ type Program public () =
         if isRotating then
             rotation <- (rotation + (rotationSpeed * (float32 delta.Ticks / float32 TimeSpan.TicksPerSecond)))
 
-            if rotation.x >= 360.0f then
-                rotation.x <- rotation.x - 360.0f
+            if rotation.X >= 360.0f then
+                rotation <- rotation.WithX(rotation.X - 360.0f)
 
-            if rotation.y >= 360.0f then
-                rotation.y <- rotation.y - 360.0f
+            if rotation.Y >= 360.0f then
+                rotation <- rotation.WithY(rotation.Y - 360.0f)
 
-            if rotation.z >= 360.0f then
-                rotation.z <- rotation.z - 360.0f
+            if rotation.Z >= 360.0f then
+                rotation <- rotation.WithZ(rotation.Z - 360.0f)
 
     member internal this.WorldToCamera(polygon:Polygon) : unit =
         ()

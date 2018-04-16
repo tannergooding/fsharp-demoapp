@@ -42,6 +42,8 @@ type Program public () =
     let mutable scale:Vector3 = new Vector3(500.0f)
     let mutable translation:Vector3 = new Vector3(0.0f)
 
+    let mutable camera:PerspectiveCamera = new PerspectiveCamera()
+
     let mutable isTriangles:bool = false
     let mutable isRotating:bool = true
     let mutable isCulling:bool = true
@@ -90,6 +92,9 @@ type Program public () =
     // Methods
     member public this.Run() : unit =
         Console.CursorTop <- ConsoleHeaderLineCount
+
+        camera.SetEyeAtUp(Vector3.Zero, Vector3.Zero, Vector3.UnitY)
+        camera.SetClip(1.0f, 10000.0f)
 
         let mutable exitRequested = false
         dispatcher.ExitRequested.Add(fun unit -> exitRequested <- true)
@@ -254,7 +259,8 @@ type Program public () =
                 rotation <- rotation.WithZ(rotation.Z - 360.0f)
 
     member internal this.WorldToCamera(polygon:Model) : unit =
-        ()
+        for i = 0 to (polygon.Normals.Count - 1) do
+            polygon.ModifiedNormals.[i] <- polygon.ModifiedNormals.[i].Transform(camera.ViewProjection)
 
 [<EntryPoint>]
 let main argv =

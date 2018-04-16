@@ -313,6 +313,26 @@ type Quaternion =
     member public this.W with get() : float32 = this.Value.W
 
     // Static Methods
+    static member public CreateFrom(pitch:float32, yaw:float32, roll:float32) =
+        let halfPitch = pitch * 0.5f
+        let sp = MathF.Sin(halfPitch)
+        let cp = MathF.Cos(halfPitch)
+
+        let halfYaw = yaw * 0.5f
+        let sy = MathF.Sin(halfYaw)
+        let cy = MathF.Cos(halfYaw)
+
+        let halfRoll = roll * 0.5f
+        let sr = MathF.Sin(halfRoll)
+        let cr = MathF.Cos(halfRoll)
+
+        new Quaternion(
+            ((cy * sp) * cr) + ((sy * cp) * sr),
+            ((sy * cp) * cr) - ((cy * sp) * sr),
+            ((cy * cp) * sr) - ((sy * sp) * cr),
+            ((cy * cp) * cr) + ((sy * sp) * sr)
+        )
+
     static member public CreateFrom(value:Matrix3x3) : Quaternion =
         let trace = value.X.X + value.Y.Y + value.Z.Z;
  
@@ -518,6 +538,25 @@ type Vector3 =
 #endif
 
     member public this.Transform(transformation:Matrix3x3) : Vector3 =
+#if HWIntrinsics
+        let mutable xx:Vector128<float32> = IntrinsicMath.Permute(this.Value, IntrinsicMath.Shuffle(0uy, 0uy, 0uy, 0uy))
+        let mutable xy:Vector128<float32> = IntrinsicMath.Permute(this.Value, IntrinsicMath.Shuffle(1uy, 1uy, 1uy, 1uy))
+        let mutable xz:Vector128<float32> = IntrinsicMath.Permute(this.Value, IntrinsicMath.Shuffle(2uy, 2uy, 2uy, 2uy))
+
+        xx <- Sse.Multiply(xx, transformation.X.Value)
+        xy <- Sse.Multiply(xy, transformation.Y.Value)
+        xz <- Sse.Multiply(xz, transformation.Z.Value)
+
+        let mutable temp:Vector128<float32> = Sse.Add(xx, xy)
+        temp <- Sse.Add(temp, xz)
+        new Vector3(temp)
+#else
+        new Vector3((this.X * transformation.X.X) + (this.Y * transformation.Y.X) + (this.Z * transformation.Z.X),
+                    (this.X * transformation.X.Y) + (this.Y * transformation.Y.Y) + (this.Z * transformation.Z.Y),
+                    (this.X * transformation.X.Z) + (this.Y * transformation.Y.Z) + (this.Z * transformation.Z.Z))
+#endif
+
+    member public this.Transform(transformation:Matrix4x4) : Vector3 =
 #if HWIntrinsics
         let mutable xx:Vector128<float32> = IntrinsicMath.Permute(this.Value, IntrinsicMath.Shuffle(0uy, 0uy, 0uy, 0uy))
         let mutable xy:Vector128<float32> = IntrinsicMath.Permute(this.Value, IntrinsicMath.Shuffle(1uy, 1uy, 1uy, 1uy))

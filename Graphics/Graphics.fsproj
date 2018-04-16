@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Polygon.fs" />
+    <Compile Include="Model.fs" />
     <Compile Include="Bitmap.fs" />
     <Compile Include="IDrawingContext.fs" />
   </ItemGroup>

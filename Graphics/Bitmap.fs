@@ -87,7 +87,7 @@ type Bitmap public (width:int32, height:int32) =
             let index:int32 = ((y * width) + x)
             this.DrawPixelUnsafe(index, color)
 
-    member public this.DrawPolygon(polygon:Polygon, isTriangles:bool, isCulling:bool) : unit =
+    member public this.DrawPolygon(polygon:Model, isTriangles:bool, isCulling:bool) : unit =
         for i = 0 to (polygon.VerticeGroups.Count - 1) do
             if not isCulling || not (this.ShouldCull(polygon, i)) then
                 match polygon.VerticeGroups.[i].Length with
@@ -95,7 +95,9 @@ type Bitmap public (width:int32, height:int32) =
                 | 2 -> this.DrawLine(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], 0u)
                 | 3 -> this.DrawTriangle(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], 0u)
                 | 4 -> this.DrawQuad(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[2]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[3]], 0u, isTriangles)
-                | _ -> invalidOp "Bad VerticeGroup Length"
+                | _ -> for n = 0 to (polygon.VerticeGroups.[i].Length - 2) do
+                           this.DrawLine(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[n]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[n + 1]], 0u)
+                       this.DrawLine(polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[polygon.VerticeGroups.[i].Length - 1]], polygon.ModifiedVertices.[polygon.VerticeGroups.[i].[0]], 0u)
 
     member public this.DrawQuad(point1:Vector3, point2:Vector3, point3:Vector3, point4:Vector3, color:uint32, isTriangles:bool) : unit =
         this.DrawLine(point1, point2, color)
@@ -297,14 +299,9 @@ type Bitmap public (width:int32, height:int32) =
     member internal this.Dispose (isDisposing:bool) : unit =
         Marshal.FreeHGlobal(handle)
 
-    member internal this.ShouldCull(polygon:Polygon, index:int32) : bool =
-        let mutable normal = match polygon.NormalGroups.[index].Length with
-                             | 1 -> polygon.ModifiedNormals.[polygon.NormalGroups.[index].[0]]
-                             | 2 -> polygon.ModifiedNormals.[polygon.NormalGroups.[index].[1]]
-                             | 3 -> polygon.ModifiedNormals.[polygon.NormalGroups.[index].[2]]
-                             | 4 -> polygon.ModifiedNormals.[polygon.NormalGroups.[index].[3]]
-                             | _ -> invalidOp "Bad NormalGroup Length"
-        
+    member internal this.ShouldCull(polygon:Model, index:int32) : bool =
+        let mutable normal = polygon.ModifiedNormals.[polygon.NormalGroups.[index].[polygon.NormalGroups.[index].Length - 1]]
+
         if index <> 1 then
             normal <- normal + match polygon.NormalGroups.[index].Length with
                                | 2 -> polygon.ModifiedNormals.[polygon.NormalGroups.[index].[0]]

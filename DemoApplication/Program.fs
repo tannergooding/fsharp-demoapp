@@ -37,17 +37,17 @@ type Program public () =
     let mutable totalUptime:TimeSpan = TimeSpan.Zero
     let mutable lastHeaderUpdate:TimeSpan = TimeSpan.Zero
 
-    let mutable rotation:Vector3 = new Vector3(45.0f, 45.0f, 45.0f)
-    let mutable rotationSpeed:Vector3 = new Vector3(15.0000f, 15.0000f, 15.0000f)
-    let mutable scale:Vector3 = new Vector3(100.0f, 100.0f, 1.0f)
-    let mutable translation:Vector3 = new Vector3(0.0f, 0.0f, 0.0f)
+    let mutable rotation:Vector3 = new Vector3(75.0f, 0.0f, 0.0f)
+    let mutable rotationSpeed:Vector3 = new Vector3(0.0000f, 15.0000f, 0.0000f)
+    let mutable scale:Vector3 = new Vector3(500.0f)
+    let mutable translation:Vector3 = new Vector3(0.0f)
 
     let mutable isTriangles:bool = false
     let mutable isRotating:bool = true
     let mutable isCulling:bool = true
 
-    let cube:Polygon =
-        let primitive:Polygon = new Polygon(8, 6, 6, 6)
+    let cube:Model =
+        let primitive:Model = new Model(8, 6, 6, 6)
 
         primitive.Vertices.Add(new Vector3(-1.000000f, -1.000000f, -1.000000f))
         primitive.Vertices.Add(new Vector3(-1.000000f,  1.000000f, -1.000000f))
@@ -81,7 +81,11 @@ type Program public () =
 
         primitive
 
-    let mutable activePrimitive:Polygon = cube
+    let mutable activePrimitive:Model =
+        try
+            Model.ParseXFile("test")
+        with
+        | _ -> cube
 
     // Methods
     member public this.Run() : unit =
@@ -105,7 +109,7 @@ type Program public () =
             previousTimestamp <- timestamp
             dispatcher.DispatchPending()
 
-    member internal this.CameraToScreen(polygon:Polygon) : unit =
+    member internal this.CameraToScreen(polygon:Model) : unit =
         ()
 
     member internal this.Idle(delta:TimeSpan) : unit =
@@ -113,7 +117,7 @@ type Program public () =
         this.Render()
         this.Present()
 
-    member internal this.ObjectToWorld(polygon:Polygon) : unit =
+    member internal this.ObjectToWorld(polygon:Model) : unit =
         this.RotateObject(polygon)
         this.ScaleObject(polygon)
         this.TranslateObject(polygon)
@@ -164,7 +168,7 @@ type Program public () =
             lastHeaderUpdate <- TimeSpan.Zero
             fps <- 0
 
-    member internal this.RotateObject(polygon:Polygon) : unit =
+    member internal this.RotateObject(polygon:Model) : unit =
         let deg2rad:float32 = MathF.PI / 180.0f
 
         let rotX:float32 = (rotation.X * deg2rad)
@@ -200,7 +204,7 @@ type Program public () =
         for i = 0 to (polygon.Normals.Count - 1) do
             polygon.ModifiedNormals.[i] <- (polygon.ModifiedNormals.[i] * mR)
 
-    member internal this.ScaleObject(polygon:Polygon) : unit =
+    member internal this.ScaleObject(polygon:Model) : unit =
         let m:Matrix3x3 = new Matrix3x3(new Vector3(scale.X, 0.0f, 0.0f),
                                         new Vector3(0.0f, scale.Y, 0.0f),
                                         new Vector3(0.0f, 0.0f, scale.Z))
@@ -208,7 +212,7 @@ type Program public () =
         for i = 0 to (polygon.Vertices.Count - 1) do
             polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] * m)
 
-    member internal this.TranslateObject(polygon:Polygon) : unit =
+    member internal this.TranslateObject(polygon:Model) : unit =
         for i = 0 to (polygon.Vertices.Count - 1) do
             polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] + translation)
 
@@ -249,7 +253,7 @@ type Program public () =
             if rotation.Z >= 360.0f then
                 rotation <- rotation.WithZ(rotation.Z - 360.0f)
 
-    member internal this.WorldToCamera(polygon:Polygon) : unit =
+    member internal this.WorldToCamera(polygon:Model) : unit =
         ()
 
 [<EntryPoint>]

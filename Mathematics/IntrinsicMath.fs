@@ -34,4 +34,19 @@ module IntrinsicMath =
             temp <- Permute(temp, Shuffle(1uy, 1uy, 1uy, 1uy))
             dot <- Sse.AddScalar(dot, temp)
             Permute(dot, Shuffle(0uy, 0uy, 0uy, 0uy))
+
+    let inline public DotVector4(left:Vector128<float32>, right:Vector128<float32>) : Vector128<float32> =
+        if Sse41.IsSupported then
+            Sse41.DotProduct(left, right, 0xFFuy)
+        else if Sse3.IsSupported then
+            let mutable temp:Vector128<float32> = Sse.Multiply(left, right)
+            temp <- Sse3.HorizontalAdd(temp, temp)
+            Sse3.HorizontalAdd(temp, temp)
+        else
+            let mutable dot:Vector128<float32> = Sse.Multiply(left, right)
+            let mutable temp:Vector128<float32> = Sse.Shuffle(right, dot, Shuffle(1uy, 0uy, 0uy, 0uy))
+            temp <- Sse.AddScalar(temp, dot)
+            dot <- Sse.Shuffle(dot, temp, Shuffle(0uy, 3uy, 0uy, 0uy))
+            dot <- Sse.AddScalar(dot, temp)
+            Permute(dot, Shuffle(2uy, 2uy, 2uy, 2uy))
 #endif

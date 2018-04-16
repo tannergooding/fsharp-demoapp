@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Camera.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Bitmap.fs" />
     <Compile Include="IDrawingContext.fs" />

@@ -199,10 +199,10 @@ type Program public () =
         let mR:Matrix3x3 = ((mX * mY) * mZ)
 
         for i = 0 to (polygon.Vertices.Count - 1) do
-            polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] * mR)
+            polygon.ModifiedVertices.[i] <- polygon.ModifiedVertices.[i].Transform(mR)
 
         for i = 0 to (polygon.Normals.Count - 1) do
-            polygon.ModifiedNormals.[i] <- (polygon.ModifiedNormals.[i] * mR)
+            polygon.ModifiedNormals.[i] <- polygon.ModifiedNormals.[i].Transform(mR)
 
     member internal this.ScaleObject(polygon:Model) : unit =
         let m:Matrix3x3 = new Matrix3x3(new Vector3(scale.X, 0.0f, 0.0f),
@@ -210,7 +210,7 @@ type Program public () =
                                         new Vector3(0.0f, 0.0f, scale.Z))
 
         for i = 0 to (polygon.Vertices.Count - 1) do
-            polygon.ModifiedVertices.[i] <- (polygon.ModifiedVertices.[i] * m)
+            polygon.ModifiedVertices.[i] <- polygon.ModifiedVertices.[i].Transform(m)
 
     member internal this.TranslateObject(polygon:Model) : unit =
         for i = 0 to (polygon.Vertices.Count - 1) do

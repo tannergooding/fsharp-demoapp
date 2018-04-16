@@ -2,13 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <NoWarn>9</NoWarn>
+    <NoWarn>9;40</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="IntrinsicMath.fs" />
-    <Compile Include="Vector3.fs" />
-    <Compile Include="Matrix3x3.fs" />
+    <Compile Include="PrimitiveTypes.fs" />
   </ItemGroup>
 
 </Project>

@@ -668,7 +668,11 @@ type Vector4 =
 #endif
 
     public new (value:Vector3, w:float32) =
-        { X = value.X; Y =  value.Y; Z = value.Z; W = w }
+#if HWIntrinsics
+        { Value = Sse.SetVector128(w, value.Z, value.Y, value.X) }
+#else
+        { X = value.X; Y = value.Y; Z = value.Z; W = w }
+#endif
 
     // Static Properties
     static member public Zero with get() : Vector4 = new Vector4()

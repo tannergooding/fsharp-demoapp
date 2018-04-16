@@ -37,8 +37,8 @@ type Program public () =
     let mutable totalUptime:TimeSpan = TimeSpan.Zero
     let mutable lastHeaderUpdate:TimeSpan = TimeSpan.Zero
 
-    let mutable rotation:Vector3 = new Vector3(75.0f, 0.0f, 0.0f)
-    let mutable rotationSpeed:Vector3 = new Vector3(0.0000f, 15.0000f, 0.0000f)
+    let mutable rotation:Vector3 = new Vector3(-75.0f, 0.0f, 0.0f)
+    let mutable rotationSpeed:Vector3 = new Vector3(0.0000f, -15.0000f, 0.0000f)
     let mutable scale:Vector3 = new Vector3(500.0f)
     let mutable translation:Vector3 = new Vector3(0.0f)
 
@@ -174,40 +174,14 @@ type Program public () =
             fps <- 0
 
     member internal this.RotateObject(polygon:Model) : unit =
-        let deg2rad:float32 = MathF.PI / 180.0f
-
-        let rotX:float32 = (rotation.X * deg2rad)
-        let rotY:float32 = (rotation.Y * deg2rad)
-        let rotZ:float32 = (rotation.Z * deg2rad)
-
-        let sinX = MathF.Sin(rotX)
-        let cosX = if MathF.Abs(sinX) = 1.0f then
-                       0.0f
-                   else
-                       MathF.Cos(rotX)
-        let mX = new Matrix3x3(Vector3.UnitX, new Vector3(0.0f, cosX, -sinX), new Vector3(0.0f, sinX, cosX))
-
-        let sinY = MathF.Sin(rotY)
-        let cosY = if MathF.Abs(sinY) = 1.0f then
-                       0.0f
-                   else
-                       MathF.Cos(rotY)
-        let mY = new Matrix3x3(new Vector3(cosY, 0.0f, sinY), Vector3.UnitY, new Vector3(-sinY, 0.0f, cosY))
-
-        let sinZ = MathF.Sin(rotZ)
-        let cosZ = if MathF.Abs(sinZ) = 1.0f then
-                       0.0f
-                   else
-                       MathF.Cos(rotZ)
-        let mZ = new Matrix3x3(new Vector3(cosZ, -sinZ, 0.0f), new Vector3(sinZ, cosZ, 0.0f), Vector3.UnitZ)
-
-        let mR:Matrix3x3 = ((mX * mY) * mZ)
+        let rotation = rotation * (MathF.PI / 180.0f)
+        let rotation:Quaternion = Quaternion.CreateFrom(rotation.X, rotation.Y, rotation.Z)
 
         for i = 0 to (polygon.Vertices.Count - 1) do
-            polygon.ModifiedVertices.[i] <- polygon.ModifiedVertices.[i].Transform(mR)
+            polygon.ModifiedVertices.[i] <- polygon.ModifiedVertices.[i].Transform(rotation)
 
         for i = 0 to (polygon.Normals.Count - 1) do
-            polygon.ModifiedNormals.[i] <- polygon.ModifiedNormals.[i].Transform(mR)
+            polygon.ModifiedNormals.[i] <- polygon.ModifiedNormals.[i].Transform(rotation)
 
     member internal this.ScaleObject(polygon:Model) : unit =
         let m:Matrix3x3 = new Matrix3x3(new Vector3(scale.X, 0.0f, 0.0f),
@@ -259,6 +233,9 @@ type Program public () =
                 rotation <- rotation.WithZ(rotation.Z - 360.0f)
 
     member internal this.WorldToCamera(polygon:Model) : unit =
+        for i = 0 to (polygon.Vertices.Count - 1) do
+            polygon.ModifiedVertices.[i] <- polygon.ModifiedVertices.[i].Transform(camera.ViewProjection)
+
         for i = 0 to (polygon.Normals.Count - 1) do
             polygon.ModifiedNormals.[i] <- polygon.ModifiedNormals.[i].Transform(camera.ViewProjection)
 

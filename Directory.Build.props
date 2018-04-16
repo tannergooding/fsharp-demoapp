@@ -20,7 +20,7 @@
   <!-- Default settings that explicitly differ from the Sdk.props defaults  -->
   <PropertyGroup>
     <BaseIntermediateOutputPath>$(BaseArtifactsPath)obj/$(BaseArtifactsPathSuffix)/</BaseIntermediateOutputPath>
-    <!-- <DefineConstants>$(DefineConstants);HWIntrinsics</DefineConstants> -->
+    <DefineConstants Condition="'$(UseHWIntrinsics)' == 'true'">$(DefineConstants);HWIntrinsics</DefineConstants>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>

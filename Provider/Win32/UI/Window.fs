@@ -16,7 +16,11 @@ type Window internal (windowManager:IWindowManager, entryPointModule:HMODULE) =
     // Fields
     let paint:Event<EventHandler<PaintEventArgs>, PaintEventArgs> = Event<EventHandler<PaintEventArgs>, PaintEventArgs>()
     let windowManager:IWindowManager = windowManager
-    let mutable title:string = typeof<Window>.FullName
+#if HWIntrinsics
+    let mutable title:string = "Hardware Intrinsics"
+#else
+    let mutable title:string = "Software"
+#endif
     let parentThread:Thread = Thread.CurrentThread
 
     let mutable bounds:Rectangle = new Rectangle(Single.NaN, Single.NaN, Single.NaN, Single.NaN)
